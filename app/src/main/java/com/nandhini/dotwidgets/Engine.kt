@@ -441,7 +441,7 @@ class NotifService : NotificationListenerService() {
         val counts = LinkedHashMap<String, Int>()
         for (n in all) {
             if (n.packageName == packageName || n.isOngoing) continue
-            if (n.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0) continue
+            if ((n.notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0) continue
             counts[n.packageName] = (counts[n.packageName] ?: 0) + 1
         }
         val arr = JSONArray()
