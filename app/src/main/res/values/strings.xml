@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dot Widgets</string>
+    <string name="d_clock">Big time, day, date and next alarm</string>
+    <string name="d_battery">Battery level dot ring and temperature</string>
+    <string name="d_weather">Temperature, condition and hourly dots</string>
+    <string name="d_calendar">Today and your next event</string>
+    <string name="d_activity">Steps, distance and calories rings</string>
+    <string name="d_toggles">Torch, Wi-Fi, Do not disturb, camera</string>
+    <string name="d_now_playing">Music from any app with controls</string>
+    <string name="d_world_clock">Your time and a second city</string>
+    <string name="d_focus">Tap to start or pause a focus session</string>
+    <string name="d_sun">Daylight arc for your city</string>
+    <string name="d_data">Mobile data today and phone storage</string>
+    <string name="d_steps">Dot-matrix steps and goal progress</string>
+    <string name="d_torch">One tap flashlight</string>
+    <string name="d_rahu">Rahu kalam, Yamagandam, Gulikai and Abhijit</string>
+    <string name="d_notifs">Unread notifications as dots</string>
+    <string name="d_pet">A pixel pet that grows when you walk</string>
+    <string name="d_screen">Screen-on time and unlocks today</string>
+    <string name="d_charging">Charge level, time to full, temperature</string>
+    <string name="d_netspeed">Download and upload speed</string>
+    <string name="d_compass">Tap to read your heading</string>
+    <string name="d_weeks">This year as 52 dots</string>
+</resources>
