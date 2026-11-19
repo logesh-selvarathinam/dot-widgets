@@ -30,6 +30,7 @@ class MainActivity : Activity() {
     private lateinit var list: LinearLayout
     private val prefs by lazy { Prefs(this) }
     private val fields = mutableMapOf<String, EditText>()
+    private var available: AppUpdate.Release? = null
 
     private val bgColor = 0xFF141416.toInt()
     private val cardColor = 0xFF26262A.toInt()
@@ -50,6 +51,7 @@ class MainActivity : Activity() {
         super.onResume()
         build()
         Ticker.ensure(this)
+        autoCheck()
     }
 
     private fun px(v: Int) = (v * dp).toInt()
@@ -59,6 +61,9 @@ class MainActivity : Activity() {
         fields.clear()
         title("Dot Widgets", 30f)
         note("Add widgets: long-press your home screen → Widgets → Dot Widgets.")
+        available?.let { r ->
+            button("Update available: ${r.name}. Tap to install", true) { confirmUpdate(r) }
+        }
 
         section("Permissions")
         perm("Steps, activity and pet", "Counts steps with the phone's step sensor",
@@ -108,6 +113,10 @@ class MainActivity : Activity() {
             toast("Focus timer reset")
         }
         note("Tip: weather and Rahu kalam use the city above. Tap the compass and network speed widgets to update them.")
+
+        section("App")
+        note("Version ${AppUpdate.currentName(this)}")
+        button("Check for updates", false) { checkUpdate(true) }
     }
 
     // ---- views
@@ -236,6 +245,65 @@ class MainActivity : Activity() {
             Weather.refresh(this)
             Updater.updateAll(this)
             runOnUiThread { build(); toast("Location set to ${prefs.city}") }
+        }
+    }
+
+    // ---- in-app updates (GitHub Releases)
+
+    private fun autoCheck() {
+        val last = prefs.long("upd_checked", 0L)
+        if (System.currentTimeMillis() - last > 6 * 3_600_000L) checkUpdate(false)
+    }
+
+    private fun checkUpdate(manual: Boolean) {
+        if (manual) toast("Checking for updates…")
+        bg.execute {
+            val r = AppUpdate.latest()
+            prefs.put("upd_checked", System.currentTimeMillis())
+            runOnUiThread {
+                when {
+                    r == null -> if (manual) toast("Couldn't reach GitHub. Check your internet.")
+                    r.code <= AppUpdate.currentCode(this) -> {
+                        available = null
+                        if (manual) toast("You're on the latest version")
+                    }
+                    else -> {
+                        available = r
+                        build()
+                        if (manual) confirmUpdate(r)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun confirmUpdate(r: AppUpdate.Release) {
+        val notes = r.notes.lineSequence().filter { it.isNotBlank() && !it.startsWith("Co-Authored") && !it.startsWith("Claude-") }
+            .take(6).joinToString("\n")
+        android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setTitle("Update to ${r.name}?")
+            .setMessage(notes.ifBlank { "A newer version is ready." } + "\n\nYour settings and widgets are kept.")
+            .setPositiveButton("Update") { _, _ -> startUpdate(r) }
+            .setNegativeButton("Later", null)
+            .show()
+    }
+
+    private fun startUpdate(r: AppUpdate.Release) {
+        if (!AppUpdate.canInstall(this)) {
+            toast("Allow Dot Widgets to install apps, then come back and tap Update again")
+            AppUpdate.askInstallPermission(this)
+            return
+        }
+        toast("Downloading update…")
+        bg.execute {
+            var lastShown = -1
+            val file = AppUpdate.download(this, r) { pct ->
+                if (pct >= lastShown + 25) { lastShown = pct; runOnUiThread { toast("Downloading… $pct%") } }
+            }
+            runOnUiThread {
+                if (file == null) toast("Download failed. Try again.")
+                else AppUpdate.install(this, file)
+            }
         }
     }
 

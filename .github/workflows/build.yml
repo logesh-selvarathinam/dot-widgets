@@ -2,7 +2,11 @@ name: Build APK
 
 on:
   push:
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -20,7 +24,7 @@ jobs:
           gradle-version: "8.10.2"
 
       - name: Build release APK
-        run: gradle :app:assembleRelease --stacktrace
+        run: gradle :app:assembleRelease --stacktrace -PbuildNumber=${{ github.run_number }}
 
       - name: Rename APK
         run: cp app/build/outputs/apk/release/app-release.apk DotWidgets.apk
@@ -29,3 +33,12 @@ jobs:
         with:
           name: DotWidgets-apk
           path: DotWidgets.apk
+
+      - name: Publish release (the app's updater reads this)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Dot Widgets 1.${{ github.run_number }}
+          body: ${{ github.event.head_commit.message }}
+          files: DotWidgets.apk
+          make_latest: true

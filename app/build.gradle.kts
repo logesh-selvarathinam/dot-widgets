@@ -11,8 +11,10 @@ android {
         applicationId = "com.nandhini.dotwidgets"
         minSdk = 31
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        // CI passes the GitHub run number so every build is a newer version
+        val build = (project.findProperty("buildNumber") as String?)?.toIntOrNull() ?: 1
+        versionCode = build
+        versionName = "1.$build"
     }
 
     signingConfigs {
